@@ -1,0 +1,109 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+@Styles.Render("~/Content/table.css")
+
+<main>
+    <div>
+        <input style="display:none;" type="text" id="SN" />
+        姓名:<input type="text" id="Name" /><br>
+        年齡:<input type="text" id="Age" /><br>
+        生日:<input type="date" id="Birthday" /><br>
+        <button id="addOrUpdate">建立帳號</button>
+    </div>
+    <div>
+        @if (ViewBag.AccountTable.Count != 0)
+        {
+            <table>
+                <tr>
+                    <th>姓名</th>
+                    <th>年齡</th>
+                    <th>生日</th>
+                    <th></th>
+                </tr>
+                @foreach (var account in ViewBag.AccountTable)
+                {
+                    <tr>
+                        <td class="name">@account.Name</td>
+                        <td class="age">@account.Age</td>
+                        <td class="birthday">@account.Birthday.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <button class="edit-button" data-id="@account.SN">修改</button>
+                            <button class="delete-button" data-id="@account.SN">刪除</button>
+                        </td>
+                    </tr>
+                }
+            </table>
+        }
+    </div>
+</main>
+
+<script>
+    $(document).ready(function () {
+        $('#addOrUpdate').click(function () {
+            createAccount();
+        });
+
+        $('.edit-button').click(function () {
+            var sn = $(this).data('id');
+            var $row = $(this).closest('tr');
+            var name = $row.find('.name').text();
+            var age = $row.find('.age').text();
+            var birthday = $row.find('.birthday').text();
+            $('#SN').val(sn);
+            $('#Name').val(name);
+            $('#Age').val(age);
+            $('#Birthday').val(birthday);
+            $('#addOrUpdate').text("修改帳號")
+        });
+
+        $('.delete-button').click(function () {
+            var sn = $(this).data('id');
+            deleteAccount(sn);
+        });
+
+        function createAccount() {
+            $.ajax({
+                url: '@Url.Action("AddOrUpdateAccount", "Home")',
+                method: "POST",
+                data: {
+                    SN: $("#SN").val(),
+                    Name: $("#Name").val(),
+                    Age: $("#Age").val(),
+                    Birthday: $("#Birthday").val()
+                },
+                dataType: "json",
+                success: function (respond) {
+                    alert(respond.Message)
+                    if (respond.Message == "Success") {
+                        location.reload();
+                    }
+                },
+                error: function (thrownError) {
+                    alert(thrownError.responseText);
+                }
+            });
+        }
+
+        function deleteAccount(sn) {
+            $.ajax({
+                url: '@Url.Action("DeleteAccount","Home")',
+                method: "POST",
+                data: {
+                    sn: sn
+                },
+                dataType: "json",
+                success: function (respond) {
+                    alert(respond.Message)
+                    if (respond.Message == "Success") {
+                        location.reload();
+                    }
+                },
+                error: function (thrownError) {
+                    alert(thrownError.responseText);
+                }
+            });
+        }
+    });
+</script>
